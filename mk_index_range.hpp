@@ -1,6 +1,15 @@
 #ifndef _MK_INDEX_RANGE_HPP_
 #define _MK_INDEX_RANGE_HPP_
 
+/*
+  Provides mk_index_range struct to generate indices for tuple manipulation.
+  Copyright (C) 2012 Paul Keir
+  Distributed under the GNU General Public License. See license.txt for details.
+*/
+
+#include <cstddef>      // std::size_t
+#include <type_traits>  // std::remove_reference
+
 template <typename T, T...>
 struct indicesT {};
 
@@ -21,7 +30,7 @@ constexpr Ts niters(Tlu l, Tlu u, Ts s) {
   return max((static_cast<Ts>(u)-static_cast<Ts>(l)+s)/s,0);
 }
 
-// Problem: the base case (the specialisation) would be negative for n,0,-s
+// The base case (the specialisation) would be negative for n,0,-s
 template <typename Tlu, typename Ts, Tlu L, Tlu U, Ts S, Tlu ...Is>
 struct MkIndicesH {
   typedef typename MkIndicesH<Tlu,Ts,L+S,U,S,Is...,L>::type type;

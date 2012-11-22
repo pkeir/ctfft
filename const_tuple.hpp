@@ -29,7 +29,28 @@ template <typename ...Ts>
 constexpr
 tuple<Ts...> make_tuple(Ts ...ts) { return tuple<Ts...>(ts...); }
 
-template <typename Tup, size_t I>
+template <typename Tup>
+  struct tuple_size;
+
+template <typename ...Ts>
+struct tuple_size<tuple<Ts...>> {
+  static const std::size_t value = sizeof...(Ts);
+};
+
+template <typename Tup, std::size_t I>
+  struct tuple_element;
+
+template <typename T, typename ...Ts, std::size_t I>
+struct tuple_element<tuple<T,Ts...>,I> {
+  typedef typename tuple_element<tuple<Ts...>,I-1>::type type;
+};
+
+template <typename T, typename ...Ts>
+struct tuple_element<tuple<T,Ts...>,0> {
+  typedef T type;
+};
+
+template <typename Tup, std::size_t I>
 struct get_helper {
   static
   constexpr
@@ -49,30 +70,55 @@ struct get_helper<Tup,0> {
   }
 };
 
-template <size_t I, typename Tup>
+template <std::size_t I, typename Tup>
 constexpr
 auto get(Tup tup) ->
   decltype(get_helper<Tup,I>::_(tup)) {
   return   get_helper<Tup,I>::_(tup);
 }
 
-template  <typename Tup1, typename Tup2, size_t ...Is, size_t ...Js>
+template  <typename Tup1, typename Tup2, std::size_t ...Is, std::size_t ...Js>
 constexpr
 auto tuple_cat_helper(Tup1 t1, Tup2 t2, indices<Is...>, indices<Js...>) ->
   decltype(make_tuple(get<Is>(t1)...,get<Js>(t2)...)) {
   return   make_tuple(get<Is>(t1)...,get<Js>(t2)...);
 }
 
-// This tuple_cat only defined for two parameters.
-template <typename ...Ts, typename ...Us>
+template <typename ...Ts>
 constexpr
-tuple<Ts...,Us...>
-tuple_cat(tuple<Ts...> t1, tuple<Us...> t2) {
-  return tuple_cat_helper(
-    t1,t2,
-    typename make_indices<0,1,Ts...>::type(),
-    typename make_indices<0,1,Us...>::type()
-  );
+tuple<>
+tuple_cat() { return tuple<>(); }       // Clang gives an error for 0 arg.
+
+template <typename ...Ts>
+constexpr
+tuple<Ts...>
+tuple_cat(tuple<Ts...> t) { return t; } // Clang gives an error for 1 arg.
+
+// cat (x:xs) ys = x : (cat xs ys)
+// cat []     ys = ys
+
+template <typename ...Ts, typename ...Us, typename ...Tups>
+constexpr
+auto
+tuple_cat(tuple<Ts...> t1, tuple<Us...> t2, Tups ...ts) ->
+  decltype(tuple_cat(
+             tuple_cat_helper(
+               t1,t2,
+               mk_index_range<0,sizeof...(Ts)-1>(),
+               mk_index_range<0,sizeof...(Us)-1>()
+             ),
+             ts...
+           )
+          )
+{
+  return   tuple_cat(
+             tuple_cat_helper(
+               t1,t2,
+               mk_index_range<0,sizeof...(Ts)-1>(),
+               mk_index_range<0,sizeof...(Us)-1>()
+             ),
+             ts...
+           );
 }
 
 }; // namespace ctup

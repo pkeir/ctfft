@@ -13,55 +13,7 @@
 #include <cmath>
 #endif
 
-template <size_t...>
-  struct indices{};
-
-template <size_t N, size_t CurStep, size_t Step,
-          typename IntTuple, typename...Types>
-  struct make_indices_impl;
-
-template <size_t N,                 size_t Step, size_t ...Indices,
-          typename T, typename...Types>
-struct make_indices_impl<N, N,       Step, indices<Indices...>, T, Types...>
-{
-  typedef typename make_indices_impl<N+1, N+Step, Step, indices<Indices...,N>,
-    Types...>::type type;
-};
-
-template <size_t N, size_t CurStep, size_t Step, size_t... Indices,
-          typename T, typename...Types>
-struct make_indices_impl<N, CurStep, Step, indices<Indices...>, T, Types...>
-{
-  typedef typename make_indices_impl<N+1, CurStep, Step, indices<Indices...>,
-    Types...>::type type;
-};
-
-template <size_t N, size_t CurStep, size_t Step, size_t... Indices>
-struct make_indices_impl<N, CurStep, Step, indices<Indices...> > {
-  typedef indices<Indices...> type;
-};
-
-//template <size_t Step, typename... Types>
-//struct make_indices : make_indices_impl<0, 0, Step, indices<>, Types...> {};
-template <size_t Start, size_t Step, typename... Types>
-struct make_indices :
-       make_indices_impl<Start, Start, Step, indices<>, Types...> {};
-
-template <typename>
-  struct make_indices_tail_helper;
-
-template <size_t I, size_t ...Indices>
-struct make_indices_tail_helper<indices<I,Indices...>> {
-  typedef indices<Indices...> type;
-};
-
-template <typename T, typename ...Ts>
-struct make_indices_tail {
-  typedef typename make_indices_tail_helper<
-//                     typename make_indices<1,T,Ts...>::type
-                     typename make_indices<0,1,T,Ts...>::type
-                   >::type type;
-};
+#include "mk_index_range.hpp"
 
 template <typename ...Ts>
   struct are_same;
@@ -71,8 +23,8 @@ struct are_same<T,T,Ts...> {
   static const bool value = true && are_same<T,Ts...>::value;
 };
 
-template <typename t>
-struct are_same<t,t> {
+template <typename T>
+struct are_same<T,T> {
   static const bool value = true;
 };
 
@@ -83,20 +35,20 @@ struct pack_head {
 
 template <typename T>
 struct Init {
-  constexpr Init(size_t n_) : n(n_) {}
+  constexpr Init(std::size_t n_) : n(n_) {}
   constexpr T operator()(T y) {
     return 2 * M_PI / n * y;
   }
-  size_t n;
+  std::size_t n;
 };
 
 template <typename T>
 struct InitRofu {
-  constexpr InitRofu(size_t n_) : n(n_) {}
-  constexpr T operator()(size_t i) {
+  constexpr InitRofu(std::size_t n_) : n(n_) {}
+  constexpr T operator()(std::size_t i) {
     return pow(exp(-2 * M_PI * T(0,1) / n),i);
   }
-  size_t n;
+  std::size_t n;
 };
 
 template <typename T, typename U>
@@ -109,19 +61,51 @@ struct Succ    {
 };
 
 template <typename T>
-struct Sum {
-  constexpr T operator()(T x, T y) { return x+y; }
+struct Sum {               // On the road to FoldR and FoldL ?
+
+  constexpr T operator()() { return T(); }
+
+  template <typename ...Ts>
+  constexpr
+  T operator()(T x, Ts ...xs) { return x+operator()(xs...); }
+
 };
+
+template <typename T> constexpr T sum(T x, T y) { return x+y; } // concise
+
+template <typename F, typename T>
+struct FoldL {
+
+  constexpr FoldL(F f, T z) : m_f(f), m_z(z) {}
+
+  constexpr T operator()() { return m_z; }
+
+  template <typename ...Ts>
+  constexpr
+  T operator()(T x, Ts ...xs) { return m_f(x,operator()(xs...)); }
+
+  F m_f;
+  T m_z;
+
+};
+
+template <typename F, typename T>
+constexpr
+FoldL<F,T> make_foldl(F f, T z) { return FoldL<F,T>(f,z); }
 
 template <typename T>
 struct Sub {
   constexpr T operator()(T x, T y) { return x-y; }
 };
 
+template <typename T> constexpr T sub(T x, T y) { return x-y; } // concise
+
 template <typename T>
 struct Product {
   constexpr T operator()(T x, T y) { return x*y; }
 };
+
+template <typename T> constexpr T product(T x, T y) { return x*y; } // concise
 
 template <typename T>
 struct Id {
@@ -141,10 +125,12 @@ struct Comp {
 };
 
 template <typename Fa, typename Fb>
-constexpr Comp<Fa,Fb> compose(Fa fa, Fb fb) { return Comp<Fa,Fb>(fa,fb); };
+constexpr
+Comp<Fa,Fb> compose(Fa fa, Fb fb) { return Comp<Fa,Fb>(fa,fb); };
 
 template <typename Fa, typename Fb, typename Fc, typename ... Fs>
-constexpr auto compose(Fa fa, Fb fb, Fc fc, Fs ... fs) ->
+constexpr
+auto compose(Fa fa, Fb fb, Fc fc, Fs ... fs) ->
   decltype(Comp<Fa,decltype(compose(fb,fc,fs...))>(fa,compose(fb,fc,fs...))) {
   return   Comp<Fa,decltype(compose(fb,fc,fs...))>(fa,compose(fb,fc,fs...));
 };

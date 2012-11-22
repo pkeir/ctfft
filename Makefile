@@ -1,6 +1,6 @@
-GXX=g++-4.7
+GXX=g++-4.8
 CLANGXX=clang++
-FORTRAN=gfortran-4.7
+FORTRAN=gfortran-4.8
 CFLAGS=-std=c++11
 FFLAGS=-cpp
 FFTSIZE=8

@@ -28,36 +28,24 @@ using std::make_tuple;
 using std::tuple_cat;
 #endif
 #include "util.hpp"
-#include "print_tuple.hpp"
+#include "tuple_util.hpp"
 using std::enable_if;
 
 namespace tupconst {
 
-template <size_t I, size_t N>
-struct iota_helper {
-  static
-  constexpr
-  auto _() ->
-    decltype(tuple_cat(make_tuple(I),iota_helper<I+1,N>::_())) {
-    return   tuple_cat(make_tuple(I),iota_helper<I+1,N>::_());
-  }
-};
-
-template <size_t I>
-struct iota_helper<I,I> {
-  static
-  constexpr
-  tuple<> _() {
-    return tuple<>();
-  }
-};
+template<size_t ...Is>
+constexpr
+auto iota_helper(indices<Is...>) ->
+  decltype(make_tuple(Is...)) {
+  return   make_tuple(Is...);
+}
 
 template <size_t N>
 constexpr
 auto
 iota() ->
-  decltype(iota_helper<0,N>::_()) {
-  return   iota_helper<0,N>::_();
+  decltype(iota_helper(mk_index_range<0,N-1>())) {
+  return   iota_helper(mk_index_range<0,N-1>());
 }
 
 template<typename F, typename ...Ts, size_t ...Is>
@@ -68,15 +56,15 @@ map_helper(F f, tuple<Ts...> t, indices<Is...>) ->
   return   make_tuple( f(get<Is>(t))... );
 }
 
-template<typename F, typename ...Ts>
+template <typename F, typename ...Ts>
 constexpr
 auto
 map(F f, tuple<Ts...> t) ->
-  decltype(map_helper(f,t,typename make_indices<0,1,Ts...>::type())) {
-  return   map_helper(f,t,typename make_indices<0,1,Ts...>::type());
+  decltype(map_helper(f,t, mk_index_range<0,sizeof...(Ts)-1>())) {
+  return   map_helper(f,t, mk_index_range<0,sizeof...(Ts)-1>());
 }
 
-template<typename F, typename ...Ts, typename ...Us, size_t ...Is>
+template <typename F, typename ...Ts, typename ...Us, size_t ...Is>
 constexpr
 auto
 zipWith_helper(F f, tuple<Ts...> t1, tuple<Us...> t2, indices<Is...>) -> 
@@ -84,43 +72,38 @@ zipWith_helper(F f, tuple<Ts...> t1, tuple<Us...> t2, indices<Is...>) ->
   return   make_tuple( f(get<Is>(t1),get<Is>(t2))... );
 }
 
-template<typename F, typename ...Ts, typename ...Us>
+template <typename F, typename ...Ts, typename ...Us>
 constexpr
 auto
 zipWith(F f, tuple<Ts...> t1, tuple<Us...> t2) ->
-  decltype(zipWith_helper(f,t1,t2,typename make_indices<0,1,Ts...>::type())) {
-  return   zipWith_helper(f,t1,t2,typename make_indices<0,1,Ts...>::type());
+  decltype(zipWith_helper(f,t1,t2,mk_index_range<0,sizeof...(Ts)-1>())) {
+  return   zipWith_helper(f,t1,t2,mk_index_range<0,sizeof...(Ts)-1>());
 }
 
-template<typename ...Ts, size_t ...Is>
-constexpr
-auto
-select(tuple<Ts...> t, indices<Is...>) ->
-  decltype(make_tuple( get<Is>(t)... )) {
-  return   make_tuple( get<Is>(t)... );
-}
-
-template <typename T, typename ...Ts>
-constexpr
-tuple<Ts...>
-tuple_tail(tuple<T,Ts...> t) {
-  return select(t,typename make_indices_tail<T,Ts...>::type());
-}
-
+// Crashes clang 3.2 snapshot 
+/*
 template <size_t N, typename ...Ts>
 constexpr
 auto
 condenseN(tuple<Ts...> t) ->
-  decltype(select(t,typename make_indices<0,N,Ts...>::type())) {
-  return   select(t,typename make_indices<0,N,Ts...>::type());
+  decltype(select(t,mk_index_range<0,sizeof...(Ts)-1,N>())) {
+  return   select(t,mk_index_range<0,sizeof...(Ts)-1,N>());
+}*/
+
+template <typename ...Ts>
+constexpr
+auto
+condense2(tuple<Ts...> t) ->
+  decltype(select(t,mk_index_range<0,sizeof...(Ts)-1,2>())) {
+  return   select(t,mk_index_range<0,sizeof...(Ts)-1,2>());
 }
 
 template <typename ...Ts>
 constexpr
 auto
 condense(tuple<Ts...> t) ->
-  decltype(condenseN<2>(t)) {
-  return   condenseN<2>(t);
+  decltype(condense2(t)) { // Avoids clang problem.
+  return   condense2(t);
 }
 
 template <typename ...Ts, typename ...Us>
@@ -143,44 +126,34 @@ cshift1(tuple<> t) {
   return t;
 }
 
-template <typename ...Ts>
-struct fft_helper {
-  typedef typename pack_head<Ts...>::type T; // T is usually cx<double>
-  template <typename ...Us>
-  static constexpr
-  typename enable_if<sizeof...(Ts)==(2*sizeof...(Us)),tuple<Ts...>>::type
-  _(tuple<Ts...> v, tuple<Us...> rofu) {
-    return cat(zipWith(Sum<T>(),
-                         fft_helper<Us...>::_(condense(v),
-                                              condense(rofu)),
-                         zipWith(Product<T>(),
-                                   fft_helper<Us...>::_(condense(cshift1(v)),
-                                                        condense(rofu)),
-                                   rofu)),
-               zipWith(Sub<T>(),
-                         fft_helper<Us...>::_(condense(v),
-                                              condense(rofu)),
-                         zipWith(Product<T>(),
-                                   fft_helper<Us...>::_(condense(cshift1(v)),
-                                                        condense(rofu)),
-                                   rofu)));
-  }
-};
-
 template <typename T>
-struct fft_helper<T,T> {
-  static constexpr tuple<T,T> _(tuple<T,T> v, tuple<T>) {
-    return make_tuple(get<0>(v)+get<1>(v),
-                      get<0>(v)-get<1>(v));
-  }
-};
-
-template <typename T, typename ...Ts> // For now; move to is_same
 constexpr
-typename enable_if<are_same<T,Ts...>::value,tuple<T,Ts...>>::type
-fft(tuple<T,Ts...> v) {
-  return fft_helper<T,Ts...>::_(v,map(InitRofu<T>(sizeof...(Ts)+1),
-                                      iota<(sizeof...(Ts)+1)/2>()));
+tuple<T,T> fft_helper(tuple<T,T> v, tuple<T>) {
+  return make_tuple(get<0>(v)+get<1>(v), get<0>(v)-get<1>(v));
+}
+
+template <typename ...Ts, typename ...Us>
+constexpr
+typename enable_if<sizeof...(Ts)==(2*sizeof...(Us)),tuple<Ts...>>::type
+fft_helper(tuple<Ts...> v, tuple<Us...> rofu) {
+  typedef typename pack_head<Ts...>::type T;   // T is usually cx<double>
+  return cat(zipWith(sum<T>,fft_helper(condense(v), condense(rofu)),
+                            zipWith(product<T>,fft_helper(condense(cshift1(v)),
+                                                          condense(rofu)),
+                                               rofu)),
+             zipWith(sub<T>,fft_helper(condense(v), condense(rofu)),
+                            zipWith(product<T>,fft_helper(condense(cshift1(v)),
+                                                          condense(rofu)),
+                                               rofu)));
+}
+
+template <typename ...Ts>
+constexpr
+typename enable_if<are_same<Ts...>::value,tuple<Ts...>>::type
+fft(tuple<Ts...> v) {
+  typedef typename pack_head<Ts...>::type T;
+  return fft_helper(v,map(InitRofu<T>(sizeof...(Ts)),
+                          iota<(sizeof...(Ts))/2>()));
 }
 
 }; // tupconst
