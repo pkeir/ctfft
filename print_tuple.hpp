@@ -2,9 +2,10 @@
 #define _PRINT_TUPLE_HPP_
 
 /* 
-  Insertion operator (<<) and helper struct for a C++11-style tuple.
-  Copyright (C) 2012 Paul Keir
-  Distributed under the GNU General Public License. See license.txt for details.
+ Insertion operator (<<) and helper struct for a C++11-style tuple.
+ Copyright Paul Keir 2012-2016
+ Distributed under the Boost Software License, Version 1.0.
+ (See accompanying file license.txt or copy at http://boost.org/LICENSE_1_0.txt)
 */
 
 #include <iostream>

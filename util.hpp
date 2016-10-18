@@ -2,9 +2,10 @@
 #define _UTIL_HPP_
 
 /* 
-  Function objects, FFT helpers, and utility functions for variadic templates.
-  Copyright (C) 2012 Paul Keir
-  Distributed under the GNU General Public License. See license.txt for details.
+ Function objects, FFT helpers, and utility functions for variadic templates.
+ Copyright Paul Keir 2012-2016
+ Distributed under the Boost Software License, Version 1.0.
+ (See accompanying file license.txt or copy at http://boost.org/LICENSE_1_0.txt)
 */
 
 #ifdef CONSTMATH

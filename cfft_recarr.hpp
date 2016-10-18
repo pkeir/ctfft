@@ -2,9 +2,10 @@
 #define _CONSTFFT_RECARR_HPP_
 
 /* 
-  Header providing FFT implementation using a recursive array type.
-  Copyright (C) 2012 Paul Keir
-  Distributed under the GNU General Public License. See license.txt for details.
+ Header providing FFT implementation using a recursive array type.
+ Copyright Paul Keir 2012-2016
+ Distributed under the Boost Software License, Version 1.0.
+ (See accompanying file license.txt or copy at http://boost.org/LICENSE_1_0.txt)
 */
 
 #ifndef SZ

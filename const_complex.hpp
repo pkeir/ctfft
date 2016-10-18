@@ -2,9 +2,10 @@
 #define _COMPLEX_HPP_
 
 /* 
-  C++11 constexpr versions of the complex type and functions needed for the FFT.
-  Copyright (C) 2012 Paul Keir
-  Distributed under the GNU General Public License. See license.txt for details.
+ C++11 constexpr versions of the complex type and functions needed for the FFT.
+ Copyright Paul Keir 2012-2016
+ Distributed under the Boost Software License, Version 1.0.
+ (See accompanying file license.txt or copy at http://boost.org/LICENSE_1_0.txt)
 */
 
 // Complex number formulae from     http://www.clarku.edu/~djoyce/complex/
