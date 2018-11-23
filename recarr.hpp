@@ -19,8 +19,8 @@ struct recarr {
   constexpr
   recarr(T x, recarr<T,N-1> a) : m_x(x), m_a(a) {}
 
-  constexpr T             head()   { return m_x; }
-  constexpr recarr<T,N-1> tail()   { return m_a; }
+  constexpr T             head() const { return m_x; }
+  constexpr recarr<T,N-1> tail() const { return m_a; }
 
 private:
   T m_x;

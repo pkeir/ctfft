@@ -37,7 +37,7 @@ struct pack_head {
 template <typename T>
 struct Init {
   constexpr Init(std::size_t n_) : n(n_) {}
-  constexpr T operator()(T y) {
+  constexpr T operator()(T y) const {
     return 2 * M_PI / n * y;
   }
   std::size_t n;
@@ -46,7 +46,7 @@ struct Init {
 template <typename T>
 struct InitRofu {
   constexpr InitRofu(std::size_t n_) : n(n_) {}
-  constexpr T operator()(std::size_t i) {
+  constexpr T operator()(std::size_t i) const {
     return pow(exp(-2 * M_PI * T(0,1) / n),i);
   }
   std::size_t n;
@@ -54,22 +54,20 @@ struct InitRofu {
 
 template <typename T, typename U>
 struct StaticCast {
-  constexpr T operator()(U u) { return static_cast<T>(u); }
+  constexpr T   operator()(U u)         const { return static_cast<T>(u); }
 };
 
 struct Succ    {
-  constexpr int operator()(int x)  { return x+1; }
+  constexpr int operator()(int x)       const { return x+1; }
 };
 
 template <typename T>
 struct Sum {               // On the road to FoldR and FoldL ?
 
-  constexpr T operator()() { return T(); }
+  constexpr T   operator()()            const { return T(); }
 
   template <typename ...Ts>
-  constexpr
-  T operator()(T x, Ts ...xs) { return x+operator()(xs...); }
-
+  constexpr T operator()(T x, Ts ...xs) const { return x+operator()(xs...); }
 };
 
 template <typename T> constexpr T sum(T x, T y) { return x+y; } // concise
@@ -79,15 +77,14 @@ struct FoldL {
 
   constexpr FoldL(F f, T z) : m_f(f), m_z(z) {}
 
-  constexpr T operator()() { return m_z; }
+  constexpr T operator()() const { return m_z; }
 
   template <typename ...Ts>
   constexpr
-  T operator()(T x, Ts ...xs) { return m_f(x,operator()(xs...)); }
+  T operator()(T x, Ts ...xs) const { return m_f(x,operator()(xs...)); }
 
   F m_f;
   T m_z;
-
 };
 
 template <typename F, typename T>
@@ -96,21 +93,21 @@ FoldL<F,T> make_foldl(F f, T z) { return FoldL<F,T>(f,z); }
 
 template <typename T>
 struct Sub {
-  constexpr T operator()(T x, T y) { return x-y; }
+  constexpr T operator()(T x, T y) const { return x-y; }
 };
 
 template <typename T> constexpr T sub(T x, T y) { return x-y; } // concise
 
 template <typename T>
 struct Product {
-  constexpr T operator()(T x, T y) { return x*y; }
+  constexpr T operator()(T x, T y) const { return x*y; }
 };
 
 template <typename T> constexpr T product(T x, T y) { return x*y; } // concise
 
 template <typename T>
 struct Id {
-  constexpr T operator()(T x) { return x; }
+  constexpr T operator()(T x) const { return x; }
 };
 
 template <typename Fa, typename Fb>
@@ -120,7 +117,7 @@ struct Comp {
   constexpr Comp(Fa fa_, Fb fb_) : fa(fa_), fb(fb_) {}
 
   template <typename ... Ts>
-  constexpr auto operator()(Ts ... ts) -> decltype(fa(fb(ts...))) {
+  constexpr auto operator()(Ts ... ts) const -> decltype(fa(fb(ts...))) {
     return fa(fb(ts...));
   };
 };

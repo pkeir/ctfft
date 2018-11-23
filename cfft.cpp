@@ -20,16 +20,19 @@ typedef cxns::cx<fptype> cxtype;
 
 int main(int argc, char *argv[])
 {
-  constexpr auto si = cxns::sin<fptype>;
-  constexpr auto in = Init<cxtype>(n);
-  constexpr auto ca = StaticCast<cxtype,size_t>();
+  constexpr auto si  = cxns::sin<fptype>;
+  constexpr auto in  = Init<cxtype>(n);
+  constexpr auto ca  = StaticCast<cxtype,size_t>();
 
-  constexpr auto x = map( compose( si, in, ca ), iota<n>() );
-  
-  std::cout << x << std::endl;
-
+#ifdef CONSTMATH
+  constexpr auto x   = map( compose( si, in, ca ), iota<n>() );
   constexpr auto res = fft(x);
+#else
+            auto x   = map( compose( si, in, ca ), iota<n>() );
+            auto res = fft(x);
+#endif
 
+  std::cout << x << std::endl;
   std::cout << map( in, res ) << std::endl;
 
   return 0;
