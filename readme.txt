@@ -28,4 +28,4 @@ make cfft_gxx_cm_ct
 ./cfft_gxx_cm_ct
 
 A blog post introducing the project can be found here:
-http://paulkeir.wordpress.com/2012/09/02/a-compile-time-fft-in-c11/
+https://pkeir.github.io/blog/2012/09/02/compile-time-fft
