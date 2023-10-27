@@ -1,9 +1,9 @@
 #ifndef _CONST_MATH_HPP_
 #define _CONST_MATH_HPP_
 
-/* 
+/*
  C++11 constexpr versions of cmath functions needed for the FFT.
- Copyright Paul Keir 2012-2016
+ Copyright Paul Keir 2012-2023
  Distributed under the Boost Software License, Version 1.0.
  (See accompanying file license.txt or copy at http://boost.org/LICENSE_1_0.txt)
 */
@@ -14,7 +14,7 @@
 #define M_PI_2 1.570796326794897
 #define M_E    2.718281828459045
 
-constexpr double tol = 0.001;
+constexpr double tol = 1e-8; //0.00000001;
 
 constexpr double abs(const double x)    { return x < 0.0 ? -x : x; }
 

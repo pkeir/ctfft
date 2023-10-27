@@ -1,5 +1,5 @@
 FORTRAN=gfortran
-CFLAGS=-std=c++11
+CXXFLAGS=-std=c++11 -fconstexpr-ops-limit=42949672954
 FFLAGS=-cpp
 FFTSIZE=8
 CM=-DCONSTMATH
@@ -12,22 +12,22 @@ sac_fft: sac_fft.f95
 	$(FORTRAN) $(FFLAGS) sac_fft.f95 -DSZ=$(FFTSIZE) -o $@
 
 cfft_gxx: cfft.cpp
-	    $(CXX) $(CFLAGS) cfft.cpp -DSZ=$(FFTSIZE) -o $@
+	    $(CXX) $(CXXFLAGS) cfft.cpp -DSZ=$(FFTSIZE) -o $@
 
 cfft_gxx_cm: cfft.cpp
-	    $(CXX) $(CFLAGS) cfft.cpp -DSZ=$(FFTSIZE) $(CM) -o $@
+	    $(CXX) $(CXXFLAGS) cfft.cpp -DSZ=$(FFTSIZE) $(CM) -o $@
 
 cfft_gxx_ct: cfft.cpp
-	    $(CXX) $(CFLAGS) cfft.cpp -DSZ=$(FFTSIZE) $(CT) -o $@
+	    $(CXX) $(CXXFLAGS) cfft.cpp -DSZ=$(FFTSIZE) $(CT) -o $@
 
 cfft_gxx_cm_ct: cfft.cpp
-	    $(CXX) $(CFLAGS) cfft.cpp -DSZ=$(FFTSIZE) $(CM) $(CT) -o $@
+	    $(CXX) $(CXXFLAGS) cfft.cpp -DSZ=$(FFTSIZE) $(CM) $(CT) -o $@
 
 cfft_gxx_recarr: cfft.cpp
-	    $(CXX) $(CFLAGS) cfft.cpp -DSZ=$(FFTSIZE) -DRECARR -o $@
+	    $(CXX) $(CXXFLAGS) cfft.cpp -DSZ=$(FFTSIZE) -DRECARR -o $@
 
 cfft_gxx_recarr_cm: cfft.cpp
-	    $(CXX) $(CFLAGS) cfft.cpp -DSZ=$(FFTSIZE) -DRECARR $(CM) -o $@
+	    $(CXX) $(CXXFLAGS) cfft.cpp -DSZ=$(FFTSIZE) -DRECARR $(CM) -o $@
 
 test: sac_fft cfft_gxx_cm_ct cfft_gxx_recarr_cm
 	rm -f /tmp/cfft_ref_out /tmp/cfft_gxx_out
