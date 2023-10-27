@@ -1,4 +1,4 @@
-Copyright 2012-2016 Paul Keir
+Copyright 2012-2023 Paul Keir
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
